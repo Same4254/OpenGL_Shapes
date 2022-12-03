@@ -30,6 +30,11 @@ void process_input(GLFWwindow *window, Rendering_State *rendering_state, Control
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, 1);
     }
+
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && !control_state->following)
+        control_state->editing_shape_type = RECT;
+    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS && !control_state->following)
+        control_state->editing_shape_type = TRIANGLE;
     
     double x_pos_pixel, y_pos_pixel;
     glfwGetCursorPos(window, &x_pos_pixel, &y_pos_pixel);
@@ -42,20 +47,23 @@ void process_input(GLFWwindow *window, Rendering_State *rendering_state, Control
 
     if (control_state->following) {
         printf("Editing!\n");
-        rendering_state->edit_shape[control_state->editing_shape_type](rendering_state, control_state->startX, control_state->startY, x_pos, y_pos, 1.0f, 0.0f, 0.0f);
+        // preserve previous color
+        rendering_state->edit_shape[control_state->editing_shape_type](rendering_state, control_state->startX, control_state->startY, x_pos, y_pos, 
+                                                                       rendering_state->verticies[rendering_state->length - 1][2],
+                                                                       rendering_state->verticies[rendering_state->length - 1][3],
+                                                                       rendering_state->verticies[rendering_state->length - 1][4]);
     }
 
     if (control_state->last_left_mouse_down && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
         printf("Mouse Change!\n");
         if (control_state->following) {
             control_state->following = false;
-        } else {
-            control_state->editing_shape_type = TRIANGLE;
+        } else if (rendering_state->length < MAX_SHAPES) {
             control_state->startX = x_pos;
             control_state->startY = y_pos;
             control_state->following = true;
 
-            rendering_state->add_shape[control_state->editing_shape_type](rendering_state, x_pos, y_pos, x_pos, y_pos, 1.0f, 0.0f, 0.0f);
+            rendering_state->add_shape[control_state->editing_shape_type](rendering_state, x_pos, y_pos, x_pos, y_pos, (float)rand() / (float)RAND_MAX, (float)rand() / (float)RAND_MAX,(float)rand() / (float)RAND_MAX);
         }
     }
 
@@ -103,6 +111,7 @@ int main() {
     Rendering_Shader_Initialize(&shader, "Shaders/VertexShader.vert", "Shaders/FragmentShader.frag");
 
     Control_State control_state;
+    control_state.editing_shape_type = TRIANGLE;
 
     Rendering_State rendering_state;
     Rendering_State_Initialize(&rendering_state);
@@ -143,6 +152,7 @@ int main() {
             glBindBuffer(GL_ARRAY_BUFFER, rendering_state.vbos[i]);
             switch (rendering_state.shape_type[i]) {
                 case RECT:
+                    glDrawArrays(GL_TRIANGLES, 0, VERTEX_COUNT_RECT);
                     break;
                 case TRIANGLE:
                     glDrawArrays(GL_TRIANGLES, 0, VERTEX_COUNT_TRIANGLE);

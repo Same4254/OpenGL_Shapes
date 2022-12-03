@@ -15,7 +15,7 @@ extern void Rendering_Shader_FreeContent(Shader *shader);
 
 #define MAX_SHAPES 10
 #define VERTEX_COUNT_TRIANGLE 3
-#define VERTEX_COUNT_RECT 4
+#define VERTEX_COUNT_RECT 6
 #define VERTEX_FLOAT_COUNT 5
 
 typedef enum {
@@ -47,3 +47,6 @@ extern void Rendering_State_Free(Rendering_State *state);
  */
 extern void Rendering_State_Edit_Triangle(Rendering_State *state, float x1, float y1, float x2, float y2, float r, float g, float b);
 extern void Rendering_State_Add_Triangle(Rendering_State *state, float x1, float y1, float x2, float y2, float r, float g, float b) ;
+
+extern void Rendering_State_Edit_Rectangle(Rendering_State *state, float x1, float y1, float x2, float y2, float r, float g, float b);
+extern void Rendering_State_Add_Rectangle(Rendering_State *state, float x1, float y1, float x2, float y2, float r, float g, float b);
