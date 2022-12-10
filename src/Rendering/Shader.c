@@ -2,7 +2,7 @@
 
 void Rendering_Shader_Initialize(Shader *shader, const char *vertexShaderPath, const char *fragmentShaderPath) {
 	shader->vertexShaderPath = strdup(vertexShaderPath);
-	shader->vertexShaderPath = strdup(fragmentShaderPath);
+	shader->fragmentShaderPath = strdup(fragmentShaderPath);
 
 	char *vertexShaderSource;
 	char *fragmentShaderSource;
@@ -56,4 +56,6 @@ void Rendering_Shader_Initialize(Shader *shader, const char *vertexShaderPath, c
 }
 
 void Rendering_Shader_FreeContent(Shader *shader) {
+    free(shader->vertexShaderPath);
+    free(shader->fragmentShaderPath);
 }

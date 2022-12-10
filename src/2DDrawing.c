@@ -23,10 +23,10 @@ typedef struct {
     bool following;
     float startX;
     float startY;
-    SHAPE editing_shape_type;
+    SHAPE_TYPE editing_shape_type;
 } Control_State;
 
-void process_input(GLFWwindow *window, Rendering_State *rendering_state, Control_State *control_state) {
+void process_input(GLFWwindow *window, RenderingState *rendering_state, Control_State *control_state) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, 1);
     }
@@ -46,12 +46,19 @@ void process_input(GLFWwindow *window, Rendering_State *rendering_state, Control
     float y_pos = -(y_pos_pixel - (height / 2.0f)) / ((float) height / 2.0f);
 
     if (control_state->following) {
-        printf("Editing!\n");
         // preserve previous color
-        rendering_state->edit_shape[control_state->editing_shape_type](rendering_state, control_state->startX, control_state->startY, x_pos, y_pos, 
-                                                                       rendering_state->verticies[rendering_state->length - 1][2],
-                                                                       rendering_state->verticies[rendering_state->length - 1][3],
-                                                                       rendering_state->verticies[rendering_state->length - 1][4]);
+        Shape_Definition definition;
+        definition.x1 = control_state->startX;
+        definition.y1 = control_state->startY;
+        definition.x2 = x_pos;
+        definition.y2 = y_pos;
+
+        // no change to the color
+        definition.r = -1.0f;
+        definition.g = -1.0f;
+        definition.b = -1.0f;
+
+        rendering_state->edit_shape[control_state->editing_shape_type](rendering_state, &definition, rendering_state->length - 1);
     }
 
     if (control_state->last_left_mouse_down && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
@@ -63,7 +70,17 @@ void process_input(GLFWwindow *window, Rendering_State *rendering_state, Control
             control_state->startY = y_pos;
             control_state->following = true;
 
-            rendering_state->add_shape[control_state->editing_shape_type](rendering_state, x_pos, y_pos, x_pos, y_pos, (float)rand() / (float)RAND_MAX, (float)rand() / (float)RAND_MAX,(float)rand() / (float)RAND_MAX);
+            Shape_Definition definition;
+            definition.x1 = x_pos;
+            definition.y1 = y_pos;
+            definition.x2 = x_pos;
+            definition.y2 = y_pos;
+
+            definition.r = (float) rand() / (float) RAND_MAX;
+            definition.g = (float) rand() / (float) RAND_MAX;
+            definition.b = (float) rand() / (float) RAND_MAX;
+
+            rendering_state->add_shape[control_state->editing_shape_type](rendering_state, &definition, rendering_state->length);
         }
     }
 
@@ -112,12 +129,35 @@ int main() {
 
     Control_State control_state;
     control_state.editing_shape_type = TRIANGLE;
+    control_state.following = false;
+    control_state.last_left_mouse_down = false;
 
-    Rendering_State rendering_state;
-    Rendering_State_Initialize(&rendering_state);
+    RenderingState rendering_state;
+    RenderingState_Initialize(&rendering_state);
+
+    Shape_Definition def1;
+    def1.x1 = 0.25f;
+    def1.y1 = 0.25f;
+    def1.x2 = 0.50f;
+    def1.y2 = 0.00f;
+    def1.r = 1.00f;
+    def1.g = 0.00f;
+    def1.b = 0.00f;
     
-    Rendering_State_Add_Triangle(&rendering_state, 0.25f, 0.25f, 0.50f, 0.00f, 1.0f, 0.0f, 0.0f);
-    Rendering_State_Add_Triangle(&rendering_state, -0.25f, 0.25f, 0.00f, 0.00f, 0.0f, 0.0f, 1.0f);
+    Shape_Definition def2;
+    def2.x1 = -0.25f;
+    def2.y1 = 0.25f;
+    def2.x2 = 0.00f;
+    def2.y2 = 0.00f;
+    def2.r = 0.00f;
+    def2.g = 0.00f;
+    def2.b = 1.00f;
+
+    //RenderingState_Add_Triangle(&rendering_state, 0.25f, 0.25f, 0.50f, 0.00f, 1.0f, 0.0f, 0.0f);
+    //RenderingState_Add_Triangle(&rendering_state, -0.25f, 0.25f, 0.00f, 0.00f, 0.0f, 0.0f, 1.0f);
+
+    RenderingState_Add_Triangle(&rendering_state, &def1, 0);
+    RenderingState_Add_Triangle(&rendering_state, &def2, 1);
 
     unsigned int VBO;
     glGenBuffers(1, &VBO);
@@ -148,18 +188,10 @@ int main() {
         glUseProgram(shader.programID);
 
         for (size_t i = 0; i < rendering_state.length; i++) {
-            glBindVertexArray(rendering_state.vaos[i]);
-            glBindBuffer(GL_ARRAY_BUFFER, rendering_state.vbos[i]);
-            switch (rendering_state.shape_type[i]) {
-                case RECT:
-                    glDrawArrays(GL_TRIANGLES, 0, VERTEX_COUNT_RECT);
-                    break;
-                case TRIANGLE:
-                    glDrawArrays(GL_TRIANGLES, 0, VERTEX_COUNT_TRIANGLE);
-                    break;
-                default:
-                    printf("Unrecognized Shape!\n");
-            }
+            Shape *shape = &rendering_state.shapes[i];
+            glBindVertexArray(shape->vao);
+            glBindBuffer(GL_ARRAY_BUFFER, shape->vbo);
+            glDrawArrays(GL_TRIANGLES, 0, shape->vertex_count);
         }
 
         glBindVertexArray(VAO);
@@ -174,7 +206,7 @@ int main() {
         glfwPollEvents();
     }
 
-    Rendering_State_Free(&rendering_state);
+    RenderingState_Free(&rendering_state);
     Rendering_Shader_FreeContent(&shader);
     glfwTerminate();
 

@@ -21,32 +21,65 @@ extern void Rendering_Shader_FreeContent(Shader *shader);
 typedef enum {
     RECT,
     TRIANGLE,
-    COUNT
-} SHAPE;
-
-typedef struct Rendering_State {
-    unsigned int *vaos, *vbos;
-    float **verticies;
-
-    SHAPE *shape_type;
-    size_t length;
-
-    void (*edit_shape[COUNT])(struct Rendering_State *rendering_state, float x1, float y1, float x2, float y2, float r, float g, float b);
-    void (*add_shape[COUNT])(struct Rendering_State *rendering_state, float x1, float y1, float x2, float y2, float r, float g, float b);
-} Rendering_State;
-
-extern void Rendering_State_Initialize(Rendering_State *state);
-extern void Rendering_State_Free(Rendering_State *state);
+    SHAPE_TYPE_COUNT
+} SHAPE_TYPE;
 
 /**
- * x1 - top x coordinate
- * y1 - top y coordinate
- *
- * x2 - bottom right x coordinate
- * y2 - bottom right y coordinate
+ * Represent a vertex as the coordinate and its color
  */
-extern void Rendering_State_Edit_Triangle(Rendering_State *state, float x1, float y1, float x2, float y2, float r, float g, float b);
-extern void Rendering_State_Add_Triangle(Rendering_State *state, float x1, float y1, float x2, float y2, float r, float g, float b) ;
+typedef union {
+    float data[VERTEX_FLOAT_COUNT];
+    struct {
+        float x;
+        float y;
+        float r;
+        float g;
+        float b;
+    };
+} Vertex_2D;
 
-extern void Rendering_State_Edit_Rectangle(Rendering_State *state, float x1, float y1, float x2, float y2, float r, float g, float b);
-extern void Rendering_State_Add_Rectangle(Rendering_State *state, float x1, float y1, float x2, float y2, float r, float g, float b);
+typedef struct {
+    SHAPE_TYPE type;
+    unsigned int vao, vbo;
+
+    size_t vertex_count;
+    Vertex_2D *verticies;
+} Shape;
+
+/**
+ * Provide this struct to construct a shape. 
+ * Two points and the color is everything needed to define a shape
+ * Used to track history on the stack
+ */
+typedef struct {
+    float x1;
+    float y1;
+
+    float x2;
+    float y2;
+
+    float r;
+    float g;
+    float b;
+} Shape_Definition;
+
+typedef struct RenderingState {
+    Shape shapes[MAX_SHAPES];
+    size_t length;
+
+    void (*edit_shape[SHAPE_TYPE_COUNT])(struct RenderingState *rendering_state, Shape_Definition *shape_definition, const size_t index);
+    bool (*add_shape[SHAPE_TYPE_COUNT])(struct RenderingState *rendering_state, Shape_Definition *shape_definition, const size_t index);
+} RenderingState;
+
+extern void RenderingState_Initialize(RenderingState *state);
+extern void RenderingState_Free(RenderingState *state);
+
+extern void RenderingState_RemoveShape(RenderingState *state, Shape_Definition *shape_definition, const size_t index);
+
+// **** Shape Functions **** //
+
+extern void RenderingState_Edit_Triangle(RenderingState *state, Shape_Definition *shape_definition, const size_t index);
+extern bool RenderingState_Add_Triangle(RenderingState *state, Shape_Definition *shape_definition, const size_t index);
+
+extern void RenderingState_Edit_Rectangle(RenderingState *state, Shape_Definition *shape_definition, const size_t index);
+extern bool RenderingState_Add_Rectangle(RenderingState *state, Shape_Definition *shape_definition, const size_t index);

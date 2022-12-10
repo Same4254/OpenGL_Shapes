@@ -1,64 +1,60 @@
 #include "Rendering/Rendering.h"
 
-void Rendering_State_Initialize(Rendering_State *state) {
-    state->vaos = malloc(sizeof(*state->vaos) * MAX_SHAPES);
-    state->vbos = malloc(sizeof(*state->vbos) * MAX_SHAPES);
+void RenderingState_Initialize(RenderingState *state) {
+    // bind a vbo and vao for each shape we expect to use
+    for (size_t i = 0; i < MAX_SHAPES; i++) {
+        glGenBuffers(1, &state->shapes[i].vbo);
+        glGenVertexArrays(1, &state->shapes[i].vao);
+        state->shapes[i].verticies = NULL;
+    }
 
-    glGenBuffers(MAX_SHAPES, state->vbos);
-    glGenVertexArrays(MAX_SHAPES, state->vaos);
+    state->edit_shape[TRIANGLE] = RenderingState_Edit_Triangle;
+    state->add_shape[TRIANGLE] = RenderingState_Add_Triangle;
 
-    state->verticies = malloc(sizeof(*state->verticies) * MAX_SHAPES);
-    state->shape_type = malloc(sizeof(*state->shape_type) * MAX_SHAPES);
-
-    state->edit_shape[TRIANGLE] = Rendering_State_Edit_Triangle;
-    state->add_shape[TRIANGLE] = Rendering_State_Add_Triangle;
-
-    state->edit_shape[RECT] = Rendering_State_Edit_Rectangle;
-    state->add_shape[RECT] = Rendering_State_Add_Rectangle;
+    state->edit_shape[RECT] = RenderingState_Edit_Rectangle;
+    state->add_shape[RECT] = RenderingState_Add_Rectangle;
 
     state->length = 0;
 }
 
-void Rendering_State_Free(Rendering_State *state) {
-    free(state->vaos);
-    free(state->vbos);
-    free(state->shape_type);
-
+void RenderingState_Free(RenderingState *state) {
     for (size_t i = 0; i < state->length; i++)
-        free(state->verticies[i]);
-    free(state->verticies);
+        free(state->shapes[i].verticies);
 }
 
-void Rendering_State_Edit_Triangle(Rendering_State *state, float x1, float y1, float x2, float y2, float r, float g, float b) {
-    size_t index = state->length - 1;
-    float *vertices = state->verticies[index];
+void RenderingState_RemoveShape(RenderingState *state, Shape_Definition *shape_definition, const size_t index) {
+    
+}
+
+void RenderingState_Edit_Triangle(RenderingState *state, Shape_Definition *shape_definition, const size_t index) {
+    Shape *shape = &state->shapes[index];
 
     //printf("%f, %f, %f, %f\n", x1, y1, x2, y2);
+    Vertex_2D *vertex1 = &shape->verticies[0];
+    Vertex_2D *vertex2 = &shape->verticies[1];
+    Vertex_2D *vertex3 = &shape->verticies[2];
 
-    vertices[0] = x1;
-    vertices[1] = y1;
-    vertices[2] = r;
-    vertices[3] = g;
-    vertices[4] = b;
+    vertex1->x = shape_definition->x1;
+    vertex1->y = shape_definition->y1;
 
-    vertices[5] = x2;
-    vertices[6] = y2;
-    vertices[7] = r;
-    vertices[8] = g;
-    vertices[9] = b;
+    vertex2->x = shape_definition->x2;
+    vertex2->y = shape_definition->y2;
 
-    vertices[10] = x1 - (x2 - x1);
-    vertices[11] = y2;
-    vertices[12] = r;
-    vertices[13] = g;
-    vertices[14] = b;
+    vertex3->x = shape_definition->x1 - (shape_definition->x2 - shape_definition->x1);
+    vertex3->y = shape_definition->y2;
 
-    state->shape_type[index] = TRIANGLE;
+    if (shape_definition->r != -1.0f && shape_definition->g != -1.0f && shape_definition->b != -1.0f) {
+        for (size_t i = 0; i < VERTEX_COUNT_TRIANGLE; i++) {
+            shape->verticies[i].r = shape_definition->r;
+            shape->verticies[i].g = shape_definition->g;
+            shape->verticies[i].b = shape_definition->b;
+        }
+    }
 
-    glBindVertexArray(state->vaos[index]);
-    glBindBuffer(GL_ARRAY_BUFFER, state->vbos[index]);
+    glBindVertexArray(shape->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, shape->vbo);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * VERTEX_FLOAT_COUNT * VERTEX_COUNT_TRIANGLE, vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex_2D) * shape->vertex_count, shape->verticies, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
@@ -67,63 +63,57 @@ void Rendering_State_Edit_Triangle(Rendering_State *state, float x1, float y1, f
     glEnableVertexAttribArray(1);
 }
 
-void Rendering_State_Add_Triangle(Rendering_State *state, float x1, float y1, float x2, float y2, float r, float g, float b) {
+bool RenderingState_Add_Triangle(RenderingState *state, Shape_Definition *shape_definition, const size_t index) {
     printf("Add_Trinagle\n");
 
-    state->verticies[state->length] = malloc(sizeof(float) * VERTEX_FLOAT_COUNT * VERTEX_COUNT_TRIANGLE);
-    state->shape_type[state->length] = TRIANGLE;
+    if (index >= MAX_SHAPES)
+        return false;
+
+    Shape *shape = &state->shapes[index];
+    shape->vertex_count = VERTEX_COUNT_TRIANGLE;
+    shape->verticies = malloc(sizeof(Vertex_2D) * VERTEX_COUNT_TRIANGLE);
+    shape->type = TRIANGLE;
     state->length++;
-    Rendering_State_Edit_Triangle(state, x1, y1, x2, y2, r, g, b);
+    RenderingState_Edit_Triangle(state, shape_definition, index);
+
+    return true;
 }
 
-void Rendering_State_Edit_Rectangle(Rendering_State *state, float x1, float y1, float x2, float y2, float r, float g, float b) {
-    size_t index = state->length - 1;
-    float *vertices = state->verticies[index];
+void RenderingState_Edit_Rectangle(RenderingState *state, Shape_Definition *shape_definition, const size_t index) {
+    Shape *shape = &state->shapes[index];
 
     // triangle 1
-    vertices[0] = x1;
-    vertices[1] = y1;
-    vertices[2] = r;
-    vertices[3] = g;
-    vertices[4] = b;
+    shape->verticies[0].x = shape_definition->x1;
+    shape->verticies[0].y = shape_definition->y1;
 
-    vertices[5] = x2;
-    vertices[6] = y1;
-    vertices[7] = r;
-    vertices[8] = g;
-    vertices[9] = b;
+    shape->verticies[1].x = shape_definition->x2;
+    shape->verticies[1].y = shape_definition->y1;
 
-    vertices[10] = x1;
-    vertices[11] = y2;
-    vertices[12] = r;
-    vertices[13] = g;
-    vertices[14] = b;
+    shape->verticies[2].x = shape_definition->x1;
+    shape->verticies[2].y = shape_definition->y2;
 
     // triangle 2
-    vertices[15] = x2;
-    vertices[16] = y1;
-    vertices[17] = r;
-    vertices[18] = g;
-    vertices[19] = b;
+    shape->verticies[3].x = shape_definition->x2;
+    shape->verticies[3].y = shape_definition->y1;
 
-    vertices[20] = x2;
-    vertices[21] = y2;
-    vertices[22] = r;
-    vertices[23] = g;
-    vertices[24] = b;
+    shape->verticies[4].x = shape_definition->x2;
+    shape->verticies[4].y = shape_definition->y2;
 
-    vertices[25] = x1;
-    vertices[26] = y2;
-    vertices[27] = r;
-    vertices[28] = g;
-    vertices[29] = b;
+    shape->verticies[5].x = shape_definition->x1;
+    shape->verticies[5].y = shape_definition->y2;
 
-    state->shape_type[index] = RECT;
+    if (shape_definition->r != -1.0f && shape_definition->g != -1.0f && shape_definition->b != -1.0f) {
+        for (size_t i = 0; i < VERTEX_COUNT_RECT; i++) {
+            shape->verticies[i].r = shape_definition->r;
+            shape->verticies[i].g = shape_definition->g;
+            shape->verticies[i].b = shape_definition->b;
+        }
+    }
 
-    glBindVertexArray(state->vaos[index]);
-    glBindBuffer(GL_ARRAY_BUFFER, state->vbos[index]);
+    glBindVertexArray(shape->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, shape->vbo);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * VERTEX_FLOAT_COUNT * VERTEX_COUNT_RECT, vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex_2D) * VERTEX_COUNT_RECT, shape->verticies, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
@@ -132,11 +122,19 @@ void Rendering_State_Edit_Rectangle(Rendering_State *state, float x1, float y1, 
     glEnableVertexAttribArray(1);
 }
 
-void Rendering_State_Add_Rectangle(Rendering_State *state, float x1, float y1, float x2, float y2, float r, float g, float b) {
+bool RenderingState_Add_Rectangle(RenderingState *state, Shape_Definition *shape_definition, const size_t index) {
     printf("Add_Rect\n");
 
-    state->verticies[state->length] = malloc(sizeof(float) * VERTEX_FLOAT_COUNT * VERTEX_COUNT_RECT);
-    state->shape_type[state->length] = RECT;
+    if (index >= MAX_SHAPES)
+        return false;
+    
+    Shape *shape = &state->shapes[index];
+
+    shape->verticies = malloc(sizeof(Vertex_2D) * VERTEX_COUNT_RECT);
+    shape->vertex_count = VERTEX_COUNT_RECT;
+    shape->type = RECT;
     state->length++;
-    Rendering_State_Edit_Rectangle(state, x1, y1, x2, y2, r, g, b);
+    RenderingState_Edit_Rectangle(state, shape_definition, index);
+
+    return true;
 }
