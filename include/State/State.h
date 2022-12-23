@@ -7,7 +7,6 @@ typedef struct {
     float y_pos;
 
     int left_button_state;
-    int right_button_state;
 } MouseState;
 
 typedef struct {
@@ -24,7 +23,11 @@ typedef enum {
 } CONTROL_MODE;
 
 typedef struct {
+	bool moving_shape;
+    float startX;
+    float startY;
 
+    size_t moving_shape_index;
 } EditModeState;
 
 typedef struct {

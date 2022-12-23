@@ -26,6 +26,7 @@ void RenderingState_RemoveShape(RenderingState *state, const ShapeDefinition *sh
 	if (state->length == 0)
         return;
 
+    free(state->shapes[index].verticies);
     for (size_t i = index; i < state->length - 1; i++) {
         Shape *shape = &state->shapes[i];
 
@@ -52,6 +53,8 @@ void RenderingState_RemoveShape(RenderingState *state, const ShapeDefinition *sh
 }
 
 void RenderingState_TranslateShape(RenderingState *state, const ShapeDefinition *shape_definition, const size_t index) {
+	printf("%f %f %f %f\n", shape_definition->x1, shape_definition->y1, shape_definition->x2, shape_definition->y2);
+
 	Shape *shape = &state->shapes[index];
     shape->shape_definition.x1 += shape_definition->x1;
     shape->shape_definition.y1 += shape_definition->y1;

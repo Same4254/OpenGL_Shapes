@@ -17,6 +17,9 @@ void ControlState_Initialize(ControlState *control_state) {
     control_state->last_mouse.x_pos = 0;
     control_state->last_mouse.y_pos = 0;
 
+    control_state->current_mouse.left_button_state = GLFW_RELEASE;
+    control_state->last_mouse.left_button_state = GLFW_RELEASE;
+
     control_state->last_keyboard.delete_button_state = GLFW_RELEASE;
     control_state->last_keyboard.space_button_state = GLFW_RELEASE;
     control_state->last_keyboard.y_button_state = GLFW_RELEASE;
@@ -74,7 +77,6 @@ void ControlState_Update_Mouse(ControlState *control_state, GLFWwindow *window) 
 	control_state->last_mouse = control_state->current_mouse;
 
     control_state->current_mouse.left_button_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
-    control_state->current_mouse.right_button_state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
 
     double x_pos_pixel, y_pos_pixel;
     glfwGetCursorPos(window, &x_pos_pixel, &y_pos_pixel);
