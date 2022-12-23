@@ -29,7 +29,7 @@ FetchContent_MakeAvailable(glm)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-add_executable(2DDrawing "src/2DDrawing.c" "src/glad.c" "src/Rendering/Rendering.c" "src/Rendering/Shader.c" "src/Utils/Matrix.c" "src/Utils/Utils.c" "src/Utils/FileIO.c")
+add_executable(2DDrawing "src/2DDrawing.c" "src/glad.c" "src/Rendering/Rendering.c" "src/Rendering/Shader.c" "src/State/EditMode.c" "src/State/InsertMode.c" "src/State/ControlState.c" "src/Utils/Matrix.c" "src/Utils/Utils.c" "src/Utils/FileIO.c")
 
 target_link_libraries (2DDrawing ${OPENGL_LIBRARY} glfw glm)
 

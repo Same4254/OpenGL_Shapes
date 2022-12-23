@@ -1,12 +1,9 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 
-#include "Rendering/Rendering.h"
+#include "State/State.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	printf("Size Changed! %d, %d\n", width, height);
@@ -18,74 +15,74 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 		printf("[OpenGL Error](%d):%s\n", type, message);
 }
 
-typedef struct {
-    bool last_left_mouse_down;
-    bool following;
-    float startX;
-    float startY;
-    SHAPE_TYPE editing_shape_type;
-} Control_State;
-
-void process_input(GLFWwindow *window, RenderingState *rendering_state, Control_State *control_state) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, 1);
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && !control_state->following)
-        control_state->editing_shape_type = RECT;
-    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS && !control_state->following)
-        control_state->editing_shape_type = TRIANGLE;
-    
-    double x_pos_pixel, y_pos_pixel;
-    glfwGetCursorPos(window, &x_pos_pixel, &y_pos_pixel);
-
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-
-    float x_pos = (x_pos_pixel - (width / 2.0f)) / ((float) width / 2.0f);
-    float y_pos = -(y_pos_pixel - (height / 2.0f)) / ((float) height / 2.0f);
-
-    if (control_state->following) {
-        // preserve previous color
-        Shape_Definition definition;
-        definition.x1 = control_state->startX;
-        definition.y1 = control_state->startY;
-        definition.x2 = x_pos;
-        definition.y2 = y_pos;
-
-        // no change to the color
-        definition.r = -1.0f;
-        definition.g = -1.0f;
-        definition.b = -1.0f;
-
-        rendering_state->edit_shape[control_state->editing_shape_type](rendering_state, &definition, rendering_state->length - 1);
-    }
-
-    if (control_state->last_left_mouse_down && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
-        printf("Mouse Change!\n");
-        if (control_state->following) {
-            control_state->following = false;
-        } else if (rendering_state->length < MAX_SHAPES) {
-            control_state->startX = x_pos;
-            control_state->startY = y_pos;
-            control_state->following = true;
-
-            Shape_Definition definition;
-            definition.x1 = x_pos;
-            definition.y1 = y_pos;
-            definition.x2 = x_pos;
-            definition.y2 = y_pos;
-
-            definition.r = (float) rand() / (float) RAND_MAX;
-            definition.g = (float) rand() / (float) RAND_MAX;
-            definition.b = (float) rand() / (float) RAND_MAX;
-
-            rendering_state->add_shape[control_state->editing_shape_type](rendering_state, &definition, rendering_state->length);
-        }
-    }
-
-    control_state->last_left_mouse_down = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
-}
+//typedef struct {
+//    bool last_left_mouse_down;
+//    bool following;
+//    float startX;
+//    float startY;
+//    SHAPE_TYPE editing_shape_type;
+//} ControlState;
+//
+//void process_input(GLFWwindow *window, RenderingState *rendering_state, ControlState *control_state) {
+//    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+//        glfwSetWindowShouldClose(window, 1);
+//    }
+//
+//    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && !control_state->following)
+//        control_state->editing_shape_type = RECT;
+//    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS && !control_state->following)
+//        control_state->editing_shape_type = TRIANGLE;
+//    
+//    double x_pos_pixel, y_pos_pixel;
+//    glfwGetCursorPos(window, &x_pos_pixel, &y_pos_pixel);
+//
+//    int width, height;
+//    glfwGetWindowSize(window, &width, &height);
+//
+//    float x_pos = (x_pos_pixel - (width / 2.0f)) / ((float) width / 2.0f);
+//    float y_pos = -(y_pos_pixel - (height / 2.0f)) / ((float) height / 2.0f);
+//
+//    if (control_state->following) {
+//        // preserve previous color
+//        ShapeDefinition definition;
+//        definition.x1 = control_state->startX;
+//        definition.y1 = control_state->startY;
+//        definition.x2 = x_pos;
+//        definition.y2 = y_pos;
+//
+//        // no change to the color
+//        definition.r = -1.0f;
+//        definition.g = -1.0f;
+//        definition.b = -1.0f;
+//
+//        rendering_state->edit_shape[control_state->editing_shape_type](rendering_state, &definition, rendering_state->length - 1);
+//    }
+//
+//    if (control_state->last_left_mouse_down && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
+//        printf("Mouse Change!\n");
+//        if (control_state->following) {
+//            control_state->following = false;
+//        } else if (rendering_state->length < MAX_SHAPES) {
+//            control_state->startX = x_pos;
+//            control_state->startY = y_pos;
+//            control_state->following = true;
+//
+//            ShapeDefinition definition;
+//            definition.x1 = x_pos;
+//            definition.y1 = y_pos;
+//            definition.x2 = x_pos;
+//            definition.y2 = y_pos;
+//
+//            definition.r = (float) rand() / (float) RAND_MAX;
+//            definition.g = (float) rand() / (float) RAND_MAX;
+//            definition.b = (float) rand() / (float) RAND_MAX;
+//
+//            rendering_state->add_shape[control_state->editing_shape_type](rendering_state, &definition, rendering_state->length);
+//        }
+//    }
+//
+//    control_state->last_left_mouse_down = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+//}
 
 int main() {
     if (!glfwInit())
@@ -127,15 +124,18 @@ int main() {
     Shader shader;
     Rendering_Shader_Initialize(&shader, "Shaders/VertexShader.vert", "Shaders/FragmentShader.frag");
 
-    Control_State control_state;
-    control_state.editing_shape_type = TRIANGLE;
-    control_state.following = false;
-    control_state.last_left_mouse_down = false;
+    //ControlState control_state;
+    //control_state.editing_shape_type = TRIANGLE;
+    //control_state.following = false;
+    //control_state.last_left_mouse_down = false;
+
+    ControlState control_state;
+    ControlState_Initialize(&control_state);
 
     RenderingState rendering_state;
     RenderingState_Initialize(&rendering_state);
 
-    Shape_Definition def1;
+    ShapeDefinition def1;
     def1.x1 = 0.25f;
     def1.y1 = 0.25f;
     def1.x2 = 0.50f;
@@ -144,7 +144,7 @@ int main() {
     def1.g = 0.00f;
     def1.b = 0.00f;
     
-    Shape_Definition def2;
+    ShapeDefinition def2;
     def2.x1 = -0.25f;
     def2.y1 = 0.25f;
     def2.x2 = 0.00f;
@@ -181,6 +181,9 @@ int main() {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, 1);
+
         float currentTime = (float) glfwGetTime();
 		float deltaTime = currentTime - lastTime;
 		lastTime = currentTime;
@@ -201,7 +204,10 @@ int main() {
 
         glfwSwapBuffers(window);
 
-        process_input(window, &rendering_state, &control_state);
+        ControlState_Update_Mouse(&control_state, window);
+        ControlState_Update_Keyboard(&control_state, window);
+        ControlState_Update_Mode(&control_state, &rendering_state, window);
+        //process_input(window, &rendering_state, &control_state);
 
         glfwPollEvents();
     }

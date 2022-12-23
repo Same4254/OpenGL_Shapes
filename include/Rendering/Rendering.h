@@ -38,14 +38,6 @@ typedef union {
     };
 } Vertex_2D;
 
-typedef struct {
-    SHAPE_TYPE type;
-    unsigned int vao, vbo;
-
-    size_t vertex_count;
-    Vertex_2D *verticies;
-} Shape;
-
 /**
  * Provide this struct to construct a shape. 
  * Two points and the color is everything needed to define a shape
@@ -61,25 +53,38 @@ typedef struct {
     float r;
     float g;
     float b;
-} Shape_Definition;
+} ShapeDefinition;
+
+typedef struct {
+    SHAPE_TYPE type;
+    unsigned int vao, vbo;
+
+    size_t vertex_count;
+    Vertex_2D *verticies;
+
+    ShapeDefinition shape_definition;
+} Shape;
 
 typedef struct RenderingState {
     Shape shapes[MAX_SHAPES];
     size_t length;
 
-    void (*edit_shape[SHAPE_TYPE_COUNT])(struct RenderingState *rendering_state, Shape_Definition *shape_definition, const size_t index);
-    bool (*add_shape[SHAPE_TYPE_COUNT])(struct RenderingState *rendering_state, Shape_Definition *shape_definition, const size_t index);
+    void (*edit_shape[SHAPE_TYPE_COUNT])(struct RenderingState *rendering_state, const ShapeDefinition *shape_definition, const size_t index);
+    void (*add_shape[SHAPE_TYPE_COUNT])(struct RenderingState *rendering_state, const ShapeDefinition *shape_definition, const size_t index);
 } RenderingState;
 
 extern void RenderingState_Initialize(RenderingState *state);
 extern void RenderingState_Free(RenderingState *state);
 
-extern void RenderingState_RemoveShape(RenderingState *state, Shape_Definition *shape_definition, const size_t index);
+extern bool Rendering_ShapeContainingPoint(RenderingState *state, const float x_pos, const float y_pos);
+
+extern void RenderingState_RemoveShape(RenderingState *state, const ShapeDefinition *shape_definition, const size_t index);
+extern void RenderingState_TranslateShape(RenderingState *state, const ShapeDefinition *shape_definition, const size_t index);
 
 // **** Shape Functions **** //
 
-extern void RenderingState_Edit_Triangle(RenderingState *state, Shape_Definition *shape_definition, const size_t index);
-extern bool RenderingState_Add_Triangle(RenderingState *state, Shape_Definition *shape_definition, const size_t index);
+extern void RenderingState_Edit_Triangle(RenderingState *state, const ShapeDefinition *shape_definition, const size_t index);
+extern void RenderingState_Add_Triangle(RenderingState *state, const ShapeDefinition *shape_definition, const size_t index);
 
-extern void RenderingState_Edit_Rectangle(RenderingState *state, Shape_Definition *shape_definition, const size_t index);
-extern bool RenderingState_Add_Rectangle(RenderingState *state, Shape_Definition *shape_definition, const size_t index);
+extern void RenderingState_Edit_Rectangle(RenderingState *state, const ShapeDefinition *shape_definition, const size_t index);
+extern void RenderingState_Add_Rectangle(RenderingState *state, const ShapeDefinition *shape_definition, const size_t index);
