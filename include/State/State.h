@@ -27,6 +27,7 @@ typedef struct {
     float startX;
     float startY;
 
+    ShapeDefinition moving_shape_original_defintion;
     size_t moving_shape_index;
 } EditModeState;
 

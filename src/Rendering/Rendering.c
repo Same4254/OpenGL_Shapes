@@ -70,8 +70,8 @@ void RenderingState_TranslateShape(RenderingState *state, const ShapeDefinition 
     state->edit_shape[shape->type](state, &shape->shape_definition, index);
 }
 
-bool Rendering_ShapeContainingPoint(RenderingState *state, const float x_pos, const float y_pos) {
-
+int Rendering_ShapeContainingPoint(RenderingState *state, const float x_pos, const float y_pos) {
+	
 }
 
 void RenderingState_Edit_Triangle(RenderingState *state, const ShapeDefinition *shape_definition, const size_t index) {

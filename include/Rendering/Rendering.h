@@ -76,7 +76,7 @@ typedef struct RenderingState {
 extern void RenderingState_Initialize(RenderingState *state);
 extern void RenderingState_Free(RenderingState *state);
 
-extern bool Rendering_ShapeContainingPoint(RenderingState *state, const float x_pos, const float y_pos);
+extern int Rendering_ShapeContainingPoint(RenderingState *state, const float x_pos, const float y_pos);
 
 extern void RenderingState_RemoveShape(RenderingState *state, const ShapeDefinition *shape_definition, const size_t index);
 extern void RenderingState_TranslateShape(RenderingState *state, const ShapeDefinition *shape_definition, const size_t index);
