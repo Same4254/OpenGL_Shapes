@@ -1,4 +1,5 @@
 #include "Rendering/Rendering.h"
+#include <string.h>
 
 void RenderingState_Initialize(RenderingState *state) {
     // bind a vbo and vao for each shape we expect to use
@@ -27,27 +28,35 @@ void RenderingState_RemoveShape(RenderingState *state, const ShapeDefinition *sh
         return;
 
     free(state->shapes[index].verticies);
-    for (size_t i = index; i < state->length - 1; i++) {
-        Shape *shape = &state->shapes[i];
+    state->shapes[index].verticies = NULL;
 
-        // Preserve the vertex buffer that this shape is attached to
-        unsigned int vbo = shape->vbo;
-        unsigned int vao = shape->vao;
+    glDeleteBuffers(1, &state->shapes[index].vbo);
+    glDeleteVertexArrays(1, &state->shapes[index].vao);
 
-        *shape = state->shapes[i + 1];
-        shape->vbo = vbo;
-        shape->vao = vao;
+    memmove(&state->shapes[index], &state->shapes[index + 1], sizeof(Shape) * (state->length - index + 1));
 
-		glBindVertexArray(shape->vao);
-        glBindBuffer(GL_ARRAY_BUFFER, shape->vbo);
+    //free(state->shapes[index].verticies);
+    //for (size_t i = index; i < state->length - 1; i++) {
+    //    Shape *shape = &state->shapes[i];
 
-        glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex_2D) * shape->vertex_count, shape->verticies, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
-        glEnableVertexAttribArray(0);
+    //    // Preserve the vertex buffer that this shape is attached to
+    //    unsigned int vbo = shape->vbo;
+    //    unsigned int vao = shape->vao;
 
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (2 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-    }
+    //    *shape = state->shapes[i + 1];
+    //    shape->vbo = vbo;
+    //    shape->vao = vao;
+
+	//	glBindVertexArray(shape->vao);
+    //    glBindBuffer(GL_ARRAY_BUFFER, shape->vbo);
+
+    //    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex_2D) * shape->vertex_count, shape->verticies, GL_STATIC_DRAW);
+    //    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
+    //    glEnableVertexAttribArray(0);
+
+    //    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (2 * sizeof(float)));
+    //    glEnableVertexAttribArray(1);
+    //}
 
     state->length--;
 }
@@ -70,9 +79,48 @@ void RenderingState_TranslateShape(RenderingState *state, const ShapeDefinition 
     state->edit_shape[shape->type](state, &shape->shape_definition, index);
 }
 
-int Rendering_ShapeContainingPoint(RenderingState *state, const float x_pos, const float y_pos) {
-	
+float sign(const Vertex_2D *p1, const Vertex_2D *p2, const Vertex_2D *p3) {
+	return (p1->x - p3->x) * (p2->y - p3->y) - (p2->x - p3->x) * (p1->y - p3->y);
 }
+
+int Rendering_ShapeContainingPoint(RenderingState *state, const float x_pos, const float y_pos) {
+    // find what shape is becing clicked. Go in reverse order to match the visual z-indexing
+    // https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
+
+    printf("Finding Shape at mouse coordinates: %f %f\n", x_pos, y_pos);
+
+    for (int i = state->length - 1; i >= 0; i--) {
+        const Shape *shape = &state->shapes[i];
+
+        for (size_t triangle_index = 0; triangle_index < shape->vertex_count; triangle_index += 3) {
+            // check if the point is inside the triangle
+            const Vertex_2D *vertex1 = &shape->verticies[triangle_index + 0];
+            const Vertex_2D *vertex2 = &shape->verticies[triangle_index + 1];
+            const Vertex_2D *vertex3 = &shape->verticies[triangle_index + 2];
+
+            Vertex_2D mouse;
+            mouse.x = x_pos;
+            mouse.y = y_pos;
+
+            float d1, d2, d3;
+            bool has_neg, has_pos;
+
+            d1 = sign(&mouse, vertex1, vertex2);
+            d2 = sign(&mouse, vertex2, vertex3);
+            d3 = sign(&mouse, vertex3, vertex1);
+
+            has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+            has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+            printf("%f %f %f, Verticies: { %f, %f }, { %f, %f }, { %f, %f }\n", d1, d2, d3, vertex1->x, vertex1->y, vertex2->x, vertex2->y, vertex3->x, vertex3->y);
+
+            if (!(has_neg && has_pos))
+                return i;
+        }
+    }
+
+    return -1;
+} 
 
 void RenderingState_Edit_Triangle(RenderingState *state, const ShapeDefinition *shape_definition, const size_t index) {
     Shape *shape = &state->shapes[index];
@@ -126,11 +174,17 @@ void RenderingState_Add_Triangle(RenderingState *state, const ShapeDefinition *s
     if (index >= MAX_SHAPES)
         return;
 
+    memmove(&state->shapes[index + 1], &state->shapes[index], sizeof(Shape) * (state->length - index + 1));
+
     Shape *shape = &state->shapes[index];
     shape->vertex_count = VERTEX_COUNT_TRIANGLE;
     shape->verticies = malloc(sizeof(Vertex_2D) * VERTEX_COUNT_TRIANGLE);
     shape->type = TRIANGLE;
     state->length++;
+
+    glGenBuffers(1, &state->shapes[index].vbo);
+    glGenVertexArrays(1, &state->shapes[index].vao);
+
     RenderingState_Edit_Triangle(state, shape_definition, index);
 }
 
@@ -190,6 +244,8 @@ void RenderingState_Add_Rectangle(RenderingState *state, const ShapeDefinition *
 
     if (index >= MAX_SHAPES)
         return;
+
+    memmove(&state->shapes[index + 1], &state->shapes[index], sizeof(Shape) * (state->length - index + 1));
     
     Shape *shape = &state->shapes[index];
 
@@ -197,5 +253,9 @@ void RenderingState_Add_Rectangle(RenderingState *state, const ShapeDefinition *
     shape->vertex_count = VERTEX_COUNT_RECT;
     shape->type = RECT;
     state->length++;
+
+    glGenBuffers(1, &state->shapes[index].vbo);
+    glGenVertexArrays(1, &state->shapes[index].vao);
+
     RenderingState_Edit_Rectangle(state, shape_definition, index);
 }
