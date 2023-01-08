@@ -58,4 +58,6 @@ void Rendering_Shader_Initialize(Shader *shader, const char *vertexShaderPath, c
 void Rendering_Shader_FreeContent(Shader *shader) {
     free(shader->vertexShaderPath);
     free(shader->fragmentShaderPath);
+
+    glDeleteProgram(shader->programID);
 }

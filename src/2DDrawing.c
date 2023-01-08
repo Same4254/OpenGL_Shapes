@@ -15,75 +15,6 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 		printf("[OpenGL Error](%d):%s\n", type, message);
 }
 
-//typedef struct {
-//    bool last_left_mouse_down;
-//    bool following;
-//    float startX;
-//    float startY;
-//    SHAPE_TYPE editing_shape_type;
-//} ControlState;
-//
-//void process_input(GLFWwindow *window, RenderingState *rendering_state, ControlState *control_state) {
-//    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-//        glfwSetWindowShouldClose(window, 1);
-//    }
-//
-//    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && !control_state->following)
-//        control_state->editing_shape_type = RECT;
-//    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS && !control_state->following)
-//        control_state->editing_shape_type = TRIANGLE;
-//    
-//    double x_pos_pixel, y_pos_pixel;
-//    glfwGetCursorPos(window, &x_pos_pixel, &y_pos_pixel);
-//
-//    int width, height;
-//    glfwGetWindowSize(window, &width, &height);
-//
-//    float x_pos = (x_pos_pixel - (width / 2.0f)) / ((float) width / 2.0f);
-//    float y_pos = -(y_pos_pixel - (height / 2.0f)) / ((float) height / 2.0f);
-//
-//    if (control_state->following) {
-//        // preserve previous color
-//        ShapeDefinition definition;
-//        definition.x1 = control_state->startX;
-//        definition.y1 = control_state->startY;
-//        definition.x2 = x_pos;
-//        definition.y2 = y_pos;
-//
-//        // no change to the color
-//        definition.r = -1.0f;
-//        definition.g = -1.0f;
-//        definition.b = -1.0f;
-//
-//        rendering_state->edit_shape[control_state->editing_shape_type](rendering_state, &definition, rendering_state->length - 1);
-//    }
-//
-//    if (control_state->last_left_mouse_down && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
-//        printf("Mouse Change!\n");
-//        if (control_state->following) {
-//            control_state->following = false;
-//        } else if (rendering_state->length < MAX_SHAPES) {
-//            control_state->startX = x_pos;
-//            control_state->startY = y_pos;
-//            control_state->following = true;
-//
-//            ShapeDefinition definition;
-//            definition.x1 = x_pos;
-//            definition.y1 = y_pos;
-//            definition.x2 = x_pos;
-//            definition.y2 = y_pos;
-//
-//            definition.r = (float) rand() / (float) RAND_MAX;
-//            definition.g = (float) rand() / (float) RAND_MAX;
-//            definition.b = (float) rand() / (float) RAND_MAX;
-//
-//            rendering_state->add_shape[control_state->editing_shape_type](rendering_state, &definition, rendering_state->length);
-//        }
-//    }
-//
-//    control_state->last_left_mouse_down = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
-//}
-
 int main() {
     if (!glfwInit())
         return -1;
@@ -95,9 +26,8 @@ int main() {
 
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "The Betterest Game", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(800, 600, "Not MSPaint", NULL, NULL);
 	if (window == NULL) {
-		//std::cout << "Failed to create GLFW window" << std::endl;
 		printf("Failed to create GLFW window\n");
 		glfwTerminate();
 		return -1;
@@ -115,26 +45,17 @@ int main() {
 	glDebugMessageCallback(MessageCallback, 0);
 	glViewport(0, 0, 800, 600);
 
-    float vertices[] = {
-     0.00f, 0.00f, 0.0f, 1.0f, 0.0f, // Vertex 1 (X, Y) (R, G, B)
-     0.25f, 0.15f, 0.0f, 1.0f, 0.0f, // Vertex 2 (X, Y)
-     0.50f, 0.00f, 0.0f, 1.0f, 0.0f // Vertex 3 (X, Y)
-    };
-
     Shader shader;
     Rendering_Shader_Initialize(&shader, "Shaders/VertexShader.vert", "Shaders/FragmentShader.frag");
 
-    //ControlState control_state;
-    //control_state.editing_shape_type = TRIANGLE;
-    //control_state.following = false;
-    //control_state.last_left_mouse_down = false;
-
+    // initialize control states
     ControlState control_state;
     ControlState_Initialize(&control_state);
 
     RenderingState rendering_state;
     RenderingState_Initialize(&rendering_state);
 
+    // Test Shapes
     ShapeDefinition def1;
     def1.x1 = 0.25f;
     def1.y1 = 0.25f;
@@ -153,28 +74,8 @@ int main() {
     def2.g = 0.00f;
     def2.b = 1.00f;
 
-    //RenderingState_Add_Triangle(&rendering_state, 0.25f, 0.25f, 0.50f, 0.00f, 1.0f, 0.0f, 0.0f);
-    //RenderingState_Add_Triangle(&rendering_state, -0.25f, 0.25f, 0.00f, 0.00f, 0.0f, 0.0f, 1.0f);
-
     RenderingState_Add_Triangle(&rendering_state, &def1, 0);
     RenderingState_Add_Triangle(&rendering_state, &def2, 1);
-
-    unsigned int VBO;
-    glGenBuffers(1, &VBO);
-
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) (2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
 
 	float lastTime = (float) glfwGetTime();
     while(!glfwWindowShouldClose(window)) {
@@ -188,6 +89,7 @@ int main() {
 		float deltaTime = currentTime - lastTime;
 		lastTime = currentTime;
 
+        // Draw the shapes
         glUseProgram(shader.programID);
 
         for (size_t i = 0; i < rendering_state.length; i++) {
@@ -197,17 +99,11 @@ int main() {
             glDrawArrays(GL_TRIANGLES, 0, shape->vertex_count);
         }
 
-        glBindVertexArray(VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
         glfwSwapBuffers(window);
 
         ControlState_Update_Mouse(&control_state, window);
         ControlState_Update_Keyboard(&control_state, window);
-        ControlState_Update_Mode(&control_state, &rendering_state, window);
-        //process_input(window, &rendering_state, &control_state);
+        ControlState_Update_Mode(&control_state, &rendering_state);
 
         glfwPollEvents();
     }
