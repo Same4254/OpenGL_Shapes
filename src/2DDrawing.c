@@ -6,13 +6,13 @@
 #include "State/State.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-	printf("Size Changed! %d, %d\n", width, height);
-	glViewport(0, 0, width, height);
+    printf("Size Changed! %d, %d\n", width, height);
+    glViewport(0, 0, width, height);
 }
 
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-	if (severity != GL_DEBUG_SEVERITY_NOTIFICATION)
-		printf("[OpenGL Error](%d):%s\n", type, message);
+    if (severity != GL_DEBUG_SEVERITY_NOTIFICATION)
+        printf("[OpenGL Error](%d):%s\n", type, message);
 }
 
 int main() {
@@ -20,30 +20,30 @@ int main() {
         return -1;
 
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "Not MSPaint", NULL, NULL);
-	if (window == NULL) {
-		printf("Failed to create GLFW window\n");
-		glfwTerminate();
-		return -1;
-	}
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Not MSPaint", NULL, NULL);
+    if (window == NULL) {
+        printf("Failed to create GLFW window\n");
+        glfwTerminate();
+        return -1;
+    }
 
-	glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(window);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		//std::cout << "Failed to initialize OpenGL context" << std::endl;
-		printf("Failed to initialize OpenGL context\n");
-		return -1;
-	}
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        //std::cout << "Failed to initialize OpenGL context" << std::endl;
+        printf("Failed to initialize OpenGL context\n");
+        return -1;
+    }
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glDebugMessageCallback(MessageCallback, 0);
-	glViewport(0, 0, 800, 600);
+    glDebugMessageCallback(MessageCallback, 0);
+    glViewport(0, 0, 800, 600);
 
     Shader shader;
     Rendering_Shader_Initialize(&shader, "Shaders/VertexShader.vert", "Shaders/FragmentShader.frag");
@@ -64,7 +64,7 @@ int main() {
     def1.r = 1.00f;
     def1.g = 0.00f;
     def1.b = 0.00f;
-    
+
     ShapeDefinition def2;
     def2.x1 = -0.25f;
     def2.y1 = 0.25f;
@@ -77,7 +77,7 @@ int main() {
     RenderingState_Add_Triangle(&rendering_state, &def1, 0);
     RenderingState_Add_Triangle(&rendering_state, &def2, 1);
 
-	float lastTime = (float) glfwGetTime();
+    float lastTime = (float) glfwGetTime();
     while(!glfwWindowShouldClose(window)) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -86,8 +86,8 @@ int main() {
             glfwSetWindowShouldClose(window, 1);
 
         float currentTime = (float) glfwGetTime();
-		float deltaTime = currentTime - lastTime;
-		lastTime = currentTime;
+        float deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
 
         // Draw the shapes
         glUseProgram(shader.programID);

@@ -26,12 +26,12 @@ void EditMode_Update_FinalState(ControlState *control_state, RenderingState *ren
     } else if (space_released) {
         control_state->current_mode_update_fptr = InsertMode_Update_FinalState;
     } else {
-		ControlState_CheckUndoRedo(control_state, rendering_state);
+        ControlState_CheckUndoRedo(control_state, rendering_state);
     }
 }
 
 void EditMode_Update_ClickedState(ControlState *control_state, RenderingState *rendering_state) {
-	EditModeState *edit_state = &control_state->edit_mode;
+    EditModeState *edit_state = &control_state->edit_mode;
 
     MouseState *current_mouse = &control_state->current_mouse;
     MouseState *last_mouse = &control_state->last_mouse;
@@ -91,7 +91,7 @@ void EditMode_Update_ClickedState(ControlState *control_state, RenderingState *r
 
         control_state->current_mode_update_fptr = EditMode_Update_FinalState;
     } else if (delete_clicked) {
-		Action *action = &control_state->history[control_state->history_current_pos];
+        Action *action = &control_state->history[control_state->history_current_pos];
         action->undo_definition = edit_state->moving_shape_original_defintion;
         action->undo_func = rendering_state->add_shape[rendering_state->shapes[edit_state->moving_shape_index].type];
         action->do_func = RenderingState_RemoveShape;

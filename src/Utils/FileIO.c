@@ -5,48 +5,48 @@
 #include <netinet/in.h>
 
 #if __BIG_ENDIAN__
-    #define htonll(x)   (x)
-    #define ntohll(x)   (x)
+#define htonll(x)   (x)
+#define ntohll(x)   (x)
 #else
-    #define htonll(x)   ((((uint64_t)htonl(x&0xFFFFFFFF)) << 32) + htonl(x >> 32))
-    #define ntohll(x)   ((((uint64_t)ntohl(x&0xFFFFFFFF)) << 32) + ntohl(x >> 32))
+#define htonll(x)   ((((uint64_t)htonl(x&0xFFFFFFFF)) << 32) + htonl(x >> 32))
+#define ntohll(x)   ((((uint64_t)ntohl(x&0xFFFFFFFF)) << 32) + ntohl(x >> 32))
 #endif
 
 uint64_t Utils_FileIO_ReadFile(const char *filePath, char **buffer) {
-	FILE *fp = fopen(filePath, "rb");
+    FILE *fp = fopen(filePath, "rb");
 
     uint64_t file_byte_length = 0;
 
-	if (fp) {
-		fseek(fp, 0, SEEK_END);
-		file_byte_length = ftell(fp);
-		fseek(fp, 0, SEEK_SET);
+    if (fp) {
+        fseek(fp, 0, SEEK_END);
+        file_byte_length = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
 
-		*buffer = malloc(file_byte_length);
-		fread(*buffer, 1, file_byte_length, fp);
+        *buffer = malloc(file_byte_length);
+        fread(*buffer, 1, file_byte_length, fp);
 
         fclose(fp);
-	}
+    }
 
-	return file_byte_length;
+    return file_byte_length;
 }
 
 uint64_t Utils_FileIO_ReadFileTerminated(const char *filePath, char **buffer_ptr) {
-	FILE *fp = fopen(filePath, "rb");
+    FILE *fp = fopen(filePath, "rb");
 
     uint64_t file_byte_length = 0;
 
-	if (fp) {
-		fseek(fp, 0, SEEK_END);
-		file_byte_length = ftell(fp);
-		fseek(fp, 0, SEEK_SET);
+    if (fp) {
+        fseek(fp, 0, SEEK_END);
+        file_byte_length = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
 
-		*buffer_ptr = malloc(file_byte_length + 1);
-		fread(*buffer_ptr, 1, file_byte_length, fp);
-		(*buffer_ptr)[file_byte_length] = '\0';
-        
+        *buffer_ptr = malloc(file_byte_length + 1);
+        fread(*buffer_ptr, 1, file_byte_length, fp);
+        (*buffer_ptr)[file_byte_length] = '\0';
+
         fclose(fp);
-	}
+    }
 
     return file_byte_length;
 }
@@ -56,19 +56,19 @@ uint32_t Utils_FileIO_CRC32(const char *data) {
 }
 
 typedef struct {
-	uint32_t width;
-	uint32_t height;
-	uint8_t bitDepth;
-	uint8_t colorType;
-	uint8_t compressionType;
-	uint8_t filterMethod;
-	uint8_t interlaceMethod;
+    uint32_t width;
+    uint32_t height;
+    uint8_t bitDepth;
+    uint8_t colorType;
+    uint8_t compressionType;
+    uint8_t filterMethod;
+    uint8_t interlaceMethod;
 } IHDR_Chunk;
 
 float* Utils_FileIO_ReadPNG_RGB(const char *filePath) {
     float* rgb_values = NULL;
 
-	char *original_file_content = NULL;
+    char *original_file_content = NULL;
     uint64_t length = Utils_FileIO_ReadFile(filePath, &original_file_content);
 
     char *shifted_content = original_file_content;
@@ -133,7 +133,7 @@ float* Utils_FileIO_ReadPNG_RGB(const char *filePath) {
     }
 
     printf("-------------------\n");
-    
+
     free(original_file_content);
     return rgb_values;
 }

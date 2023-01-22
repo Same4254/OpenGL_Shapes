@@ -23,17 +23,17 @@
 #define MAT4_COL_4 12
 
 typedef union {
-	struct {
-		float x;
-		float y;
-		float z;
-	};
+    struct {
+        float x;
+        float y;
+        float z;
+    };
 
-	float data[VEC3_LENGTH];
+    float data[VEC3_LENGTH];
 } Vec3f;
 
 typedef struct {
-	float data[MAT4_LENGTH];
+    float data[MAT4_LENGTH];
 } Mat4f;
 
 //*************************** Math ***************************//

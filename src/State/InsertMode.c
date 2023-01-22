@@ -2,7 +2,7 @@
 #include "State/State.h"
 
 void InsertMode_Update_FinalState(ControlState *control_state, RenderingState *rendering_state) {
-	InsertModeState *insert_state = &control_state->insert_mode;
+    InsertModeState *insert_state = &control_state->insert_mode;
 
     const MouseState *current_mouse = &control_state->current_mouse;
     const MouseState *last_mouse = &control_state->last_mouse;
@@ -36,12 +36,12 @@ void InsertMode_Update_FinalState(ControlState *control_state, RenderingState *r
     } else if (space_released) {
         control_state->current_mode_update_fptr = EditMode_Update_FinalState;
     } else {
-		ControlState_CheckUndoRedo(control_state, rendering_state);
+        ControlState_CheckUndoRedo(control_state, rendering_state);
     }
 }
 
 void InsertMode_Update_ClickedState(ControlState *control_state, RenderingState *rendering_state) {
-	InsertModeState *insert_state = &control_state->insert_mode;
+    InsertModeState *insert_state = &control_state->insert_mode;
     const MouseState *current_mouse = &control_state->current_mouse;
     const MouseState *last_mouse = &control_state->last_mouse;
     const KeyboardState *current_keyboard = &control_state->current_keyboard;
@@ -60,7 +60,7 @@ void InsertMode_Update_ClickedState(ControlState *control_state, RenderingState 
 
     rendering_state->edit_shape[insert_state->creating_shape_type](rendering_state, &definition, rendering_state->length - 1);
 
-	const bool clicked = (last_mouse->left_button_state == GLFW_PRESS) && (current_mouse->left_button_state == GLFW_RELEASE);
+    const bool clicked = (last_mouse->left_button_state == GLFW_PRESS) && (current_mouse->left_button_state == GLFW_RELEASE);
     if (clicked) {
         Action *action = &control_state->history[control_state->history_current_pos];
         action->do_definition = rendering_state->shapes[rendering_state->length - 1].shape_definition;

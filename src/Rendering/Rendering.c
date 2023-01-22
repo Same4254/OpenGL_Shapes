@@ -24,7 +24,7 @@ void RenderingState_Free(RenderingState *state) {
 }
 
 void RenderingState_RemoveShape(RenderingState *state, const ShapeDefinition *shape_definition, const size_t index) {
-	if (state->length == 0)
+    if (state->length == 0)
         return;
 
     free(state->shapes[index].verticies);
@@ -47,7 +47,7 @@ void RenderingState_RemoveShape(RenderingState *state, const ShapeDefinition *sh
     //    shape->vbo = vbo;
     //    shape->vao = vao;
 
-	//	glBindVertexArray(shape->vao);
+    //      glBindVertexArray(shape->vao);
     //    glBindBuffer(GL_ARRAY_BUFFER, shape->vbo);
 
     //    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex_2D) * shape->vertex_count, shape->verticies, GL_STATIC_DRAW);
@@ -62,9 +62,9 @@ void RenderingState_RemoveShape(RenderingState *state, const ShapeDefinition *sh
 }
 
 void RenderingState_TranslateShape(RenderingState *state, const ShapeDefinition *shape_definition, const size_t index) {
-	printf("%f %f %f %f\n", shape_definition->x1, shape_definition->y1, shape_definition->x2, shape_definition->y2);
+    printf("%f %f %f %f\n", shape_definition->x1, shape_definition->y1, shape_definition->x2, shape_definition->y2);
 
-	Shape *shape = &state->shapes[index];
+    Shape *shape = &state->shapes[index];
     shape->shape_definition.x1 += shape_definition->x1;
     shape->shape_definition.y1 += shape_definition->y1;
     shape->shape_definition.x2 += shape_definition->x2;
@@ -80,7 +80,7 @@ void RenderingState_TranslateShape(RenderingState *state, const ShapeDefinition 
 }
 
 float sign(const Vertex_2D *p1, const Vertex_2D *p2, const Vertex_2D *p3) {
-	return (p1->x - p3->x) * (p2->y - p3->y) - (p2->x - p3->x) * (p1->y - p3->y);
+    return (p1->x - p3->x) * (p2->y - p3->y) - (p2->x - p3->x) * (p1->y - p3->y);
 }
 
 int Rendering_ShapeContainingPoint(RenderingState *state, const float x_pos, const float y_pos) {
@@ -216,9 +216,9 @@ void RenderingState_Edit_Rectangle(RenderingState *state, const ShapeDefinition 
     shape->verticies[5].y = shape_definition->y2;
 
     if (shape_definition->r != -1.0f && shape_definition->g != -1.0f && shape_definition->b != -1.0f) {
-		shape->shape_definition.r = shape_definition->r;
-		shape->shape_definition.g = shape_definition->g;
-		shape->shape_definition.b = shape_definition->b;
+        shape->shape_definition.r = shape_definition->r;
+        shape->shape_definition.g = shape_definition->g;
+        shape->shape_definition.b = shape_definition->b;
 
         for (size_t i = 0; i < VERTEX_COUNT_RECT; i++) {
             shape->verticies[i].r = shape_definition->r;
@@ -246,7 +246,7 @@ void RenderingState_Add_Rectangle(RenderingState *state, const ShapeDefinition *
         return;
 
     memmove(&state->shapes[index + 1], &state->shapes[index], sizeof(Shape) * (state->length - index + 1));
-    
+
     Shape *shape = &state->shapes[index];
 
     shape->verticies = malloc(sizeof(Vertex_2D) * VERTEX_COUNT_RECT);
